@@ -148,12 +148,6 @@ class PeftConfig(BaseModel):
     loftq_config: Optional[LoftQConfig] = None
 
 
-class AutoType(str, Enum):
-    """auto type string configuration subset - used for bf16"""
-
-    AUTO = "auto"
-
-
 class SpecialTokensConfig(BaseModel):
     """Special tokens configuration subset"""
 
@@ -304,14 +298,16 @@ class HyperparametersConfig(BaseModel):
         },
     )
 
-    train_on_inputs: Optional[bool] = None
+    train_on_inputs: Optional[bool] = False
     group_by_length: Optional[bool] = None
 
     learning_rate: Union[str, float]
-    weight_decay: Optional[float] = None
-    optimizer: Optional[Union[OptimizerNames, Literal["lion_pytorch"]]] = None
+    weight_decay: Optional[float] = 0.0
+    optimizer: Optional[
+        Union[OptimizerNames, Literal["lion_pytorch"]]
+    ] = OptimizerNames.ADAMW_HF.value
     torchdistx_path: Optional[str] = None
-    lr_scheduler: Optional[SchedulerType] = None
+    lr_scheduler: Optional[SchedulerType] = "cosine"
     lr_scheduler_kwargs: Optional[Dict[str, Any]] = None
     lr_quadratic_warmup: Optional[bool] = None
     cosine_min_lr_ratio: Optional[float] = None
@@ -458,7 +454,7 @@ class AxolotlInputConfig(
     loss_watchdog_threshold: Optional[float] = None
     loss_watchdog_patience: Optional[int] = None
 
-    bf16: Optional[Union[AutoType, bool]] = AutoType.AUTO
+    bf16: Optional[Union[Literal["auto"], bool]] = "auto"
     fp16: Optional[bool] = None
     bfloat16: Optional[bool] = None  # for non-AMP cases
     float16: Optional[bool] = None  # for non-AMP cases
@@ -472,7 +468,7 @@ class AxolotlInputConfig(
 
     unfrozen_parameters: Optional[List[str]] = None
 
-    sequence_len: int = Field(default=1024)
+    sequence_len: int = Field(default=512)
     sample_packing: Optional[bool] = None
     eval_sample_packing: Optional[bool] = None
     pad_to_sequence_len: Optional[bool] = None
@@ -531,10 +527,10 @@ class AxolotlInputConfig(
     sample_packing_eff_est: Optional[float] = None
     axolotl_config_path: Optional[str] = None
 
-    is_falcon_derived_model: Optional[bool] = Field(default=False)
-    is_llama_derived_model: Optional[bool] = Field(default=False)
-    is_mistral_derived_model: Optional[bool] = Field(default=False)
-    is_qwen_derived_model: Optional[bool] = Field(default=False)
+    is_falcon_derived_model: Optional[bool] = Field(default=None)
+    is_llama_derived_model: Optional[bool] = Field(default=None)
+    is_mistral_derived_model: Optional[bool] = Field(default=None)
+    is_qwen_derived_model: Optional[bool] = Field(default=None)
 
     @field_validator("datasets", mode="before")
     @classmethod
