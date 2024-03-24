@@ -22,6 +22,7 @@ from axolotl.utils.dict import DictDefault
 from axolotl.utils.freeze import freeze_layers_except
 from axolotl.utils.models import load_model, load_tokenizer
 from axolotl.utils.trainer import setup_trainer
+from axolotl.utils.metrics import record_metrics_to_finetune_job, upload_files_to_s3, randomid
 
 try:
     from optimum.bettertransformer import BetterTransformer
@@ -212,7 +213,23 @@ def train(
     elif cfg.hub_model_id:
         # defensively push to the hub to ensure the model card is updated
         trainer.push_to_hub()
-
+    # update metrics to server
+    record_metrics_to_finetune_job('uploading', 'status')
+    if cfg.base_model.find("/") != -1:
+        generated_model_name = f'ft:{cfg.base_model.split("/").pop()}:nextai::{randomid()}'
+    else:
+        generated_model_name = f'ft:{cfg.base_model}:nextai::{randomid()}'
+    # TODO: Check model name availability
+    try:
+        upload_files_to_s3(cfg.output_dir, generated_model_name)
+        # todo: register model
+        record_metrics_to_finetune_job('succeeded', 'status')
+    except Exception as e:
+        record_metrics_to_finetune_job('failed', 'status')
+        record_metrics_to_finetune_job({
+            "code": "upload_failed",
+            "err": e.__str__()
+        }, 'metadata')
     return model, tokenizer
 
 
