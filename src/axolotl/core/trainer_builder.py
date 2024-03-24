@@ -664,6 +664,7 @@ class AxolotlTrainer(Trainer):
         # Add averaged stored metrics to logs
         for key, metrics in self._stored_metrics[train_eval].items():
             logs[key] = torch.tensor(metrics).mean().item()
+        print("Hopping all logs come here", logs.values().__str__())
         del self._stored_metrics[train_eval]
         return super().log(logs)
 
