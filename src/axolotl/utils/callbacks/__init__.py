@@ -38,6 +38,8 @@ from axolotl.utils.distributed import (
     zero_first,
 )
 
+from axolotl.utils.metrics import record_metrics_to_finetune_job
+
 if TYPE_CHECKING:
     from axolotl.core.trainer_builder import AxolotlTrainingArguments
 
@@ -755,3 +757,12 @@ class SaveAxolotlConfigtoWandBCallback(TrainerCallback):
             except (FileNotFoundError, ConnectionError) as err:
                 LOG.warning(f"Error while saving Axolotl config to WandB: {err}")
         return control
+
+
+class SaveMetricsToNextAICallback(TrainerCallback):
+    """ Callback to save traingin logs to Next AI """
+
+    def on_log(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
+        log = state.log_history[-1]
+        record_metrics_to_finetune_job(log)
+        return super().on_log(args, state, control, **kwargs)

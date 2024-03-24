@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader, RandomSampler
 from axolotl.core.trainer_builder import HFCausalTrainerBuilder, HFDPOTrainerBuilder
 from axolotl.utils.distributed import is_main_process, reduce_and_broadcast, zero_first
 from axolotl.utils.samplers import MultipackBatchSampler, get_dataset_lengths
+from axolotl.utils.metrics import record_metrics_to_finetune_job
 
 LOG = get_logger("axolotl")
 
@@ -205,6 +206,7 @@ def calculate_total_num_steps(cfg, train_dataset, update=True):
             .apply(lambda x: np.sum(np.array(x) != -100))
             .sum()
         )
+        record_metrics_to_finetune_job(total_supervised_tokens, "total_supervised_tokens")
         LOG.debug(
             f"`total_supervised_tokens: {total_supervised_tokens}`",
             main_process_only=True,
@@ -232,6 +234,8 @@ def calculate_total_num_steps(cfg, train_dataset, update=True):
                 )
                 * cfg.num_epochs
             )
+            record_metrics_to_finetune_job(total_num_steps, "total_num_steps")
+            record_metrics_to_finetune_job(cfg.total_num_tokens, "total_num_tokens")
             LOG.debug(
                 f"total_num_tokens: {cfg.total_num_tokens}, total_num_steps: {total_num_steps}",
                 main_process_only=True,
@@ -295,6 +299,7 @@ def calculate_total_num_steps(cfg, train_dataset, update=True):
             )
         )
     LOG.debug(f"total_num_steps: {total_num_steps}", main_process_only=True)
+    record_metrics_to_finetune_job(total_num_steps, "total_num_steps")
     return total_num_steps
 
 

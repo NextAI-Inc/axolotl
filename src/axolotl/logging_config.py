@@ -62,6 +62,11 @@ DEFAULT_LOGGING_CONFIG: Dict[str, Any] = {
             "level": "DEBUG",
             "propagate": False,
         },
+        "nextai": {
+            "handlers": ["console"],
+            "level": "DEBUG",
+            "propagate": False,
+        }
     },
 }
 

@@ -7,7 +7,7 @@ load_in_4bit: false
 strict: false
 
 datasets:
-  - path: mhenrichsen/alpaca_2k_test
+  - path: nextai-team/fashion
     type: alpaca
 dataset_prepared_path: last_run_prepared
 val_set_size: 0
@@ -18,7 +18,7 @@ adapter: lora
 lora_model_dir:
 
 sequence_len: 4096
-sample_packing: true
+sample_packing: false
 pad_to_sequence_len: true
 
 lora_r: 32
@@ -60,8 +60,8 @@ resume_from_checkpoint:
 local_rank:
 logging_steps: 1
 xformers_attention:
-flash_attention: false
-sdp_attention: true
+flash_attention: true
+sdp_attention: false
 
 loss_watchdog_threshold: 5.0
 loss_watchdog_patience: 3

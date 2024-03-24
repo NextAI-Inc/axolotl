@@ -40,6 +40,7 @@ from axolotl.utils.callbacks import (
     GPUStatsCallback,
     LossWatchDogCallback,
     SaveAxolotlConfigtoWandBCallback,
+    SaveMetricsToNextAICallback,
     SaveBetterTransformerModelCallback,
     bench_eval_callback_factory,
     causal_lm_bench_eval_callback_factory,
@@ -664,7 +665,6 @@ class AxolotlTrainer(Trainer):
         # Add averaged stored metrics to logs
         for key, metrics in self._stored_metrics[train_eval].items():
             logs[key] = torch.tensor(metrics).mean().item()
-        print("Hopping all logs come here", logs.values().__str__())
         del self._stored_metrics[train_eval]
         return super().log(logs)
 
@@ -854,7 +854,9 @@ class TrainerBuilderBase(abc.ABC):
             callbacks.append(
                 SaveAxolotlConfigtoWandBCallback(self.cfg.axolotl_config_path)
             )
-
+        callbacks.append(
+            SaveMetricsToNextAICallback()
+        )
         return callbacks
 
     @abstractmethod
