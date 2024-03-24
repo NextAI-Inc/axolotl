@@ -4,6 +4,8 @@ import functools
 import pynvml
 import torch
 from pynvml.nvml import NVMLError
+from datetime import datetime
+from axolotl.utils.metrics import record_metrics_to_finetune_job
 
 
 def check_cuda_device(default_value):
@@ -78,6 +80,13 @@ def log_gpu_memory_usage(log, msg, device):
         extras.append(f"+{cache:.03f}GB cache")
     if misc > 0:
         extras.append(f"+{misc:.03f}GB misc")
+    record_metrics_to_finetune_job({
+        "message": msg,
+        "usage": usage,
+        "cache": cache,
+        "misc": misc,
+        "timestamp": datetime.now().isoformat()
+    }, 'gpu_metrics')
     log.info(
         f"GPU memory usage {msg}: {usage:.03f}GB ({', '.join(extras)})", stacklevel=2
     )
