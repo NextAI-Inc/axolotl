@@ -21,6 +21,7 @@ from axolotl.cli import (
 from axolotl.common.cli import TrainerCliArgs
 from axolotl.prompt_strategies.sharegpt import register_chatml_template
 from axolotl.train import train
+from axolotl.utils.metrics import record_metrics_to_finetune_job
 
 LOG = logging.getLogger("axolotl.cli.train")
 
@@ -56,4 +57,11 @@ def do_train(cfg, cli_args) -> Tuple[PreTrainedModel, PreTrainedTokenizer]:
 
 
 if __name__ == "__main__":
-    fire.Fire(do_cli)
+    try:
+        record_metrics_to_finetune_job("running", "status")
+        fire.Fire(do_cli)
+    except Exception as e:
+        record_metrics_to_finetune_job("failed", "status")
+        record_metrics_to_finetune_job({
+            "error": e.__str__()
+        }, "metadata")
