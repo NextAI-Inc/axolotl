@@ -14,7 +14,7 @@ configure_logging()
 NEXTAI_LOG = logging.getLogger("nextai.callbacks")
 FINETUNE_JOB = os.getenv('FINETUNE_JOB')
 
-def record_metrics_to_finetune_job(metrics, key: Annotated[str, None]):
+def record_metrics_to_finetune_job(metrics, key: Annotated[str, None] = None):
         API_HOST = os.getenv('API_HOST', 'https://api.nextai.co.in')
         FINETUNE_KEY = os.getenv('FINETUNE_KEY')
         if FINETUNE_JOB is not None and FINETUNE_KEY is not None:
@@ -60,6 +60,30 @@ def record_metrics_to_finetune_job(metrics, key: Annotated[str, None]):
                         NEXTAI_LOG.warn(f"Failed to save metrics for step: {metrics['step']}. Error: {response['message']}")
                     else:
                         NEXTAI_LOG.warn(f"Failed to save metrics for {key}. Error: {response['message']}")
+            except Exception as e:
+                NEXTAI_LOG.error(e.__str__())
+        else:
+            NEXTAI_LOG.warn("Finetuning job id / Finetuning job key missing. Please check your environment")
+
+def register_model_to_finetune_job(name, path, parameters = None):
+        API_HOST = os.getenv('API_HOST', 'https://api.nextai.co.in')
+        FINETUNE_KEY = os.getenv('FINETUNE_KEY')
+        if FINETUNE_JOB is not None and FINETUNE_KEY is not None:
+            payload = {
+                "name": name,
+                "path": path,
+                "parameters": parameters,
+                "job": FINETUNE_JOB
+            }
+            try:
+                request = requests.post(f'{API_HOST}/models/', json=payload, headers={
+                    'x-api-key': FINETUNE_KEY
+                })
+                response = request.json()
+                if request.status_code == 200:
+                    NEXTAI_LOG.info(f"Model added to registry: {name}")
+                else:
+                    NEXTAI_LOG.warn(f"Failed to register model {name}. Error: {response['message']}")
             except Exception as e:
                 NEXTAI_LOG.error(e.__str__())
         else:

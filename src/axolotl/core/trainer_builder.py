@@ -41,6 +41,7 @@ from axolotl.utils.callbacks import (
     LossWatchDogCallback,
     SaveAxolotlConfigtoWandBCallback,
     SaveMetricsToNextAICallback,
+    SaveEstimatedTimeToNextAICallback,
     SaveBetterTransformerModelCallback,
     bench_eval_callback_factory,
     causal_lm_bench_eval_callback_factory,
@@ -856,6 +857,9 @@ class TrainerBuilderBase(abc.ABC):
             )
         callbacks.append(
             SaveMetricsToNextAICallback()
+        )
+        callbacks.append(
+            SaveEstimatedTimeToNextAICallback()
         )
         return callbacks
 

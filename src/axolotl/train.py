@@ -22,7 +22,7 @@ from axolotl.utils.dict import DictDefault
 from axolotl.utils.freeze import freeze_layers_except
 from axolotl.utils.models import load_model, load_tokenizer
 from axolotl.utils.trainer import setup_trainer
-from axolotl.utils.metrics import record_metrics_to_finetune_job, upload_files_to_s3, randomid
+from axolotl.utils.metrics import record_metrics_to_finetune_job, upload_files_to_s3, randomid, register_model_to_finetune_job
 
 try:
     from optimum.bettertransformer import BetterTransformer
@@ -83,6 +83,7 @@ def train(
         msg += " and peft_config..."
     LOG.debug(msg)
     model, peft_config = load_model(cfg, tokenizer, inference=cli_args.inference)
+    print("Hello1", model.num_parameters(), model.num_parameters(only_trainable=True))
     model.generation_config.do_sample = True
 
     model_ref = None
@@ -219,10 +220,10 @@ def train(
         generated_model_name = f'ft:{cfg.base_model.split("/").pop()}:nextai::{randomid()}'
     else:
         generated_model_name = f'ft:{cfg.base_model}:nextai::{randomid()}'
-    # TODO: Check model name availability
     try:
         upload_files_to_s3(cfg.output_dir, generated_model_name)
-        # todo: register model
+        size = (model.num_parameters() + model.num_parameters(only_trainable=True)) / (10**9)
+        register_model_to_finetune_job(name=generated_model_name, path=f's3://nextai-production/models/{generated_model_name}/', parameters=f"{size:.4f}")
         record_metrics_to_finetune_job('succeeded', 'status')
     except Exception as e:
         record_metrics_to_finetune_job('failed', 'status')

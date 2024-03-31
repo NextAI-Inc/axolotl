@@ -25,6 +25,9 @@ from transformers import (
     TrainerState,
     TrainingArguments,
 )
+from transformers.trainer_callback import (
+    ProgressCallback
+)
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR, IntervalStrategy
 
 from axolotl.utils.bench import log_gpu_memory_usage
@@ -764,5 +767,19 @@ class SaveMetricsToNextAICallback(TrainerCallback):
 
     def on_log(self, args: TrainingArguments, state: TrainerState, control: TrainerControl, **kwargs):
         log = state.log_history[-1]
-        record_metrics_to_finetune_job(log)
+        record_metrics_to_finetune_job(log, "training_metrics")
         return super().on_log(args, state, control, **kwargs)
+    
+class SaveEstimatedTimeToNextAICallback(ProgressCallback):
+
+    def __init__(self):
+        super().__init__()
+        self.has_uploaded_estimated_time = False
+
+    def on_step_end(self, args, state, control, **kwargs):
+        super().on_step_end(args, state, control, **kwargs)
+        if not self.has_uploaded_estimated_time:
+            pbar = self.training_bar.format_dict
+            estimated_time = (pbar['total'] / (pbar['rate'] * 60))
+            record_metrics_to_finetune_job(f"{estimated_time}", "estimated_time")
+            self.has_uploaded_estimated_time = True
