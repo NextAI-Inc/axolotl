@@ -14,7 +14,7 @@ configure_logging()
 NEXTAI_LOG = logging.getLogger("nextai.callbacks")
 FINETUNE_JOB = os.getenv('FINETUNE_JOB')
 
-def record_metrics_to_finetune_job(metrics: Annotated[dict, str, int, float], key: Annotated[str, None]):
+def record_metrics_to_finetune_job(metrics, key: Annotated[str, None]):
         API_HOST = os.getenv('API_HOST', 'https://api.nextai.co.in')
         FINETUNE_KEY = os.getenv('FINETUNE_KEY')
         if FINETUNE_JOB is not None and FINETUNE_KEY is not None:
@@ -47,13 +47,19 @@ def record_metrics_to_finetune_job(metrics: Annotated[dict, str, int, float], ke
                     payload[key] = metrics
             try:
                 request = requests.patch(f'{API_HOST}/fine-tune/jobs/{FINETUNE_JOB}', json=payload, headers={
-                    'X-API-KEY': FINETUNE_KEY
+                    'x-api-key': FINETUNE_KEY
                 })
                 response = request.json()
                 if request.status_code == 200:
-                    NEXTAI_LOG.info(f"Metrics saved for step: {metrics['step']}")
+                    if isinstance(metrics, dict):
+                        NEXTAI_LOG.info(f"Metrics saved for step: {metrics.get('step')}")
+                    else:
+                        NEXTAI_LOG.info(f"Metrics saved {key}")
                 else:
-                    NEXTAI_LOG.warn(f"Failed to save metrics for step: {metrics['step']}. Error: {response['message']}")
+                    if isinstance(metrics, dict):
+                        NEXTAI_LOG.warn(f"Failed to save metrics for step: {metrics['step']}. Error: {response['message']}")
+                    else:
+                        NEXTAI_LOG.warn(f"Failed to save metrics for {key}. Error: {response['message']}")
             except Exception as e:
                 NEXTAI_LOG.error(e.__str__())
         else:

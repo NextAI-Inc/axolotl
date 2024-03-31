@@ -193,6 +193,7 @@ def calculate_total_num_steps(cfg, train_dataset, update=True):
             .apply(lambda x: len(x))  # pylint: disable=unnecessary-lambda
             .values
         )
+        record_metrics_to_finetune_job(f"{total_num_tokens}", "total_num_tokens")
         LOG.debug(f"total_num_tokens: {total_num_tokens}", main_process_only=True)
         if update:
             cfg.total_num_tokens = total_num_tokens
@@ -206,7 +207,7 @@ def calculate_total_num_steps(cfg, train_dataset, update=True):
             .apply(lambda x: np.sum(np.array(x) != -100))
             .sum()
         )
-        record_metrics_to_finetune_job(total_supervised_tokens, "total_supervised_tokens")
+        record_metrics_to_finetune_job(f"{total_supervised_tokens}", "total_supervised_tokens")
         LOG.debug(
             f"`total_supervised_tokens: {total_supervised_tokens}`",
             main_process_only=True,
@@ -234,8 +235,8 @@ def calculate_total_num_steps(cfg, train_dataset, update=True):
                 )
                 * cfg.num_epochs
             )
-            record_metrics_to_finetune_job(total_num_steps, "total_num_steps")
-            record_metrics_to_finetune_job(cfg.total_num_tokens, "total_num_tokens")
+            record_metrics_to_finetune_job(f"{total_num_steps}", "total_num_steps")
+            record_metrics_to_finetune_job(f"{cfg.total_num_tokens}", "total_num_tokens")
             LOG.debug(
                 f"total_num_tokens: {cfg.total_num_tokens}, total_num_steps: {total_num_steps}",
                 main_process_only=True,
@@ -299,7 +300,7 @@ def calculate_total_num_steps(cfg, train_dataset, update=True):
             )
         )
     LOG.debug(f"total_num_steps: {total_num_steps}", main_process_only=True)
-    record_metrics_to_finetune_job(total_num_steps, "total_num_steps")
+    record_metrics_to_finetune_job(f"{total_num_steps}", "total_num_steps")
     return total_num_steps
 
 
