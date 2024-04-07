@@ -84,6 +84,7 @@ def register_model_to_finetune_job(name, path, parameters = None):
                     NEXTAI_LOG.info(f"Model added to registry: {name}")
                 else:
                     NEXTAI_LOG.warn(f"Failed to register model {name}. Error: {response['message']}")
+                return request.status_code
             except Exception as e:
                 NEXTAI_LOG.error(e.__str__())
         else:

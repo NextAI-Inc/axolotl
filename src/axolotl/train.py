@@ -223,7 +223,17 @@ def train(
     try:
         upload_files_to_s3(cfg.output_dir, generated_model_name)
         size = (model.num_parameters() + model.num_parameters(only_trainable=True)) / (10**9)
-        register_model_to_finetune_job(name=generated_model_name, path=f's3://nextai-production/models/{generated_model_name}/', parameters=f"{size:.4f}")
+        while True:
+            stats = register_model_to_finetune_job(name=generated_model_name, path=f's3://nextai-production/models/{generated_model_name}/', parameters=f"{size:.4f}")
+            if stats == 200:
+                break
+            elif stats == 409:
+                if cfg.base_model.find("/") != -1:
+                    generated_model_name = f'ft:{cfg.base_model.split("/").pop()}:nextai::{randomid()}'
+                else:
+                    generated_model_name = f'ft:{cfg.base_model}:nextai::{randomid()}'
+            else:
+                break
         record_metrics_to_finetune_job('succeeded', 'status')
     except Exception as e:
         record_metrics_to_finetune_job('failed', 'status')
