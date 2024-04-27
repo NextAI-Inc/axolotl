@@ -17,6 +17,7 @@ import wandb
 from datasets import load_dataset
 from optimum.bettertransformer import BetterTransformer
 from tqdm import tqdm
+from datetime import datetime
 from transformers import (
     GenerationConfig,
     Trainer,
@@ -782,4 +783,5 @@ class SaveEstimatedTimeToNextAICallback(ProgressCallback):
             pbar = self.training_bar.format_dict
             estimated_time = (pbar['total'] / (pbar['rate'] * 60))
             record_metrics_to_finetune_job(f"{estimated_time}", "estimated_time")
+            record_metrics_to_finetune_job(f"{datetime.now().isoformat()}", "training_start_time")
             self.has_uploaded_estimated_time = True

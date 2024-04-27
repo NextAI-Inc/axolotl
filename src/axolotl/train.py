@@ -15,6 +15,7 @@ from peft import PeftModel
 from pkg_resources import get_distribution  # type: ignore
 from transformers import PreTrainedModel, PreTrainedTokenizer
 from transformers.integrations.deepspeed import is_deepspeed_zero3_enabled
+from datetime import datetime
 
 from axolotl.common.cli import TrainerCliArgs
 from axolotl.logging_config import configure_logging
@@ -221,7 +222,6 @@ def train(
     else:
         generated_model_name = f'ft:{cfg.base_model}:nextai::{randomid()}'
     try:
-        upload_files_to_s3(cfg.output_dir, generated_model_name)
         size = (model.num_parameters() + model.num_parameters(only_trainable=True)) / (10**9)
         while True:
             stats = register_model_to_finetune_job(name=generated_model_name, path=f's3://nextai-production/models/{generated_model_name}/', parameters=f"{size:.4f}")
@@ -234,6 +234,8 @@ def train(
                     generated_model_name = f'ft:{cfg.base_model}:nextai::{randomid()}'
             else:
                 break
+        upload_files_to_s3(cfg.output_dir, generated_model_name)
+        record_metrics_to_finetune_job(f"{datetime.now().isoformat()}", "training_end_time")
         record_metrics_to_finetune_job('succeeded', 'status')
     except Exception as e:
         record_metrics_to_finetune_job('failed', 'status')
