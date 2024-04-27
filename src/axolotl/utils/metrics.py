@@ -96,7 +96,7 @@ def randomid(length = 8):
     characters += string.digits;
     id = ""
     for i in range(length):
-        randomchar = random.choice(characters)
+        randomchar = random.Random(os.urandom(4)).choice(characters)
         id += randomchar
     return id
 
