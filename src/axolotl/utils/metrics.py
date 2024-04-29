@@ -57,7 +57,7 @@ def record_metrics_to_finetune_job(metrics, key: Annotated[str, None] = None):
                         NEXTAI_LOG.info(f"Metrics saved {key}")
                 else:
                     if isinstance(metrics, dict):
-                        NEXTAI_LOG.warn(f"Failed to save metrics for step: {metrics['step']}. Error: {response['message']}")
+                        NEXTAI_LOG.warn(f"Failed to save metrics for step: {metrics.get('step')}. Error: {response['message']}")
                     else:
                         NEXTAI_LOG.warn(f"Failed to save metrics for {key}. Error: {response['message']}")
             except Exception as e:
